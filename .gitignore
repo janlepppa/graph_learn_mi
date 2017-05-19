@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.sh
+*.log
+*.aux
+*.blg
+*.synctex.gz
+*.out
+*.bbl
+

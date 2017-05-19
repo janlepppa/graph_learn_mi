@@ -6,13 +6,19 @@ Created on Thu Mar 23 15:18:44 2017
 @author: janleppa
 """
 import numpy as np
-from huge import hugeGenerateData, hugeLearnGraph
-from graphUtils import HD
+#from huge import hugeGenerateData, hugeLearnGraph
+#from graphUtils import HD
 #from scipy.stats import wishart
 from scipy.linalg import block_diag
-from structLearn import structLearn
-from knnEstimator import knnEstimator
-from fisherEstimator import fisherEstimator
+#from structLearn import structLearn
+#from knnEstimator import knnEstimator
+#from fisherEstimator import fisherEstimator
+from rpy2.robjects.packages import importr
+#import rpy2.robjects as robjects
+import rpy2.robjects.numpy2ri # passing numpy objects to R functions
+#from sklearn.preprocessing import scale
+rpy2.robjects.numpy2ri.activate()
+bdGarph = importr('BDgraph') 
 
 class dataGenerator:
     def __init__(self, testName = (True,"gaussian"), rng = None):
@@ -40,6 +46,16 @@ class dataGenerator:
             return(self.randomGaussUG(n,d = 20))
         elif self.testName == "randomUGnonParaLarge":
             return(self.randomNonParaUG(n,d = 20))
+        elif self.testName == "randomGMSmall15":
+            d = 8
+            c = 0.15
+            scaleMat = c*np.ones((d,d)) + (1-c)*np.eye(d)
+            return(self.gmUG2(n,d = d, edges = 6, scaleMat=scaleMat))
+        elif self.testName == "randomGMLarge15":
+            d = 16
+            c = 0.15
+            scaleMat = c*np.ones((d,d)) + (1-c)*np.eye(d)
+            return(self.gmUG2(n,d = d, edges = 10, scaleMat=scaleMat))
         else:    
             print("oops")
                     
@@ -137,4 +153,63 @@ class dataGenerator:
                     G[jj,ii] = 1
         
         return(G)
+        
+    def gmUG2(self,n, d, edges, scaleMat = None, df = None, nMIX = None, absPC = None):
+        G = self.randUG(d,edges) # random UG
+
+        finiteMIX = True
+        
+        if nMIX is None:
+            nMIX = n
+            finiteMIX = False
+            
+        if scaleMat is None:
+            scaleMat = np.eye(d)
+            
+        if df is None:
+            df = 3
+        
+        covMats = np.zeros((d,d,nMIX))    
+            
+        for jj in range(0,nMIX):
+            # sample inverse of covariance from G-Wishart distribution
+            IC = self.sampleGWshrt(G = G,df =df,scaleMat=scaleMat,absPC=absPC)
+            cov = np.linalg.inv(IC)
+            covMats[:,:,jj] = cov
+            
+            
+        X = np.zeros((n,d))
+        
+        for tt in range(0,n):
+            
+            if finiteMIX:
+                cov = covMats[:,:,self.rng.randint(0,nMIX)]
+            else:
+                cov = covMats[:,:,tt]
+
+            X[tt,:] = self.rng.multivariate_normal(np.zeros(d),cov)
+                
+        return(X,G)
+        
+    def sampleGWshrt(self,G,df,scaleMat, absPC = None):
+   
+        if absPC is None:
+            IC = np.array(bdGarph.rgwish(n = 1,adj_g = G,b = df, D = scaleMat))[:,:,0]
+        else:
+            repeat = True
+            IC = np.array(bdGarph.rgwish(n = 1,adj_g = G,b = df, D = scaleMat))[:,:,0]
+
+            while(repeat):
+               pc = self.covToCorr(IC)
+               nonZerosOffDiagonals = np.abs(pc.ravel()[np.triu(G).ravel() > 0])
+               minNonzero = np.min(nonZerosOffDiagonals)
+               
+               if minNonzero > absPC:
+                   break;
+                
+        return(IC)
+              
+    def covToCorr(self,cov):
+        D = np.diag(np.reciprocal(np.sqrt(np.diag(cov))))
+        return(np.dot(np.dot(D,cov),D))
          
