@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 13 11:45:03 2017
-
-@author: janleppa
-"""
-
 import numpy as np
 from rpy2.robjects.packages import importr
 import rpy2.robjects as robjects
