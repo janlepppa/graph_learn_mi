@@ -32,11 +32,11 @@ class RCIT:
         
     def independent(self,x,y,z = None):
         indep,p = self._rcittest(x,y,z)
-        return(indep,-p)
+        return (indep,-p)
         
     def dependence(self,x,y,z = None):
         _,p = self._rcittest(x,y,z)
-        return(-p)
+        return -p
         
     def _rcittest(self,x,y,z = None):
         
@@ -62,7 +62,7 @@ class RCIT:
         if p_val < self.sig:
             indep = False
             
-        return(indep,p_val)
+        return (indep,p_val)
         
 class KCIT:
     '''
@@ -82,11 +82,11 @@ class KCIT:
 
     def independent(self,x,y,z = None):
         indep,p = self._kcittest(x,y,z)
-        return(indep,-p)
+        return (indep,-p)
         
     def dependence(self,x,y,z = None):
         _,p = self._kcittest(x,y,z)
-        return(-p)
+        return -p
         
     def _kcittest(self,x,y,z = None):
         
@@ -119,6 +119,6 @@ class KCIT:
         if p_val < self.sig:
             indep = False
             
-        return(indep,p_val)
+        return (indep,p_val)
         
         

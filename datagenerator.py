@@ -18,31 +18,31 @@ class DataGenerator:
     def createData(self,n):
         if type(self.testName) == tuple:     
             linear, noise = self.testName
-            return(self.genDataSmallUG(n,linear,noise))
+            return self.genDataSmallUG(n,linear,noise)
         elif self.testName == "largeUG":
-            return(self.genDataLargeUG(n,21,linear = False,noise = "t"))
+            return self.genDataLargeUG(n,21,linear = False,noise = "t")
         elif self.testName == "largeUG_g":
-            return(self.genDataLargeUG(n,21,linear = False,noise = "gaussian"))
+            return self.genDataLargeUG(n,21,linear = False,noise = "gaussian")
         elif self.testName == "largeUG_u":
-            return(self.genDataLargeUG(n,21,linear = False,noise = "uniform"))
+            return self.genDataLargeUG(n,21,linear = False,noise = "uniform")
         elif self.testName == "randomUG":
-            return(self.randomGaussUG(n,d = 10))
+            return self.randomGaussUG(n,d = 10)
         elif self.testName == "randomUGnonPara":
-            return(self.randomNonParaUG(n,d = 10))
+            return self.randomNonParaUG(n,d = 10)
         elif self.testName == "randomUGLarge":
-            return(self.randomGaussUG(n,d = 20))
+            return self.randomGaussUG(n,d = 20)
         elif self.testName == "randomUGnonParaLarge":
-            return(self.randomNonParaUG(n,d = 20))
+            return self.randomNonParaUG(n,d = 20)
         elif self.testName == "randomGMSmall15":
             d = 8
             c = 0.15
             scaleMat = c*np.ones((d,d)) + (1-c)*np.eye(d)
-            return(self.gmUG2(n,d = d, edges = 6, scaleMat=scaleMat))
+            return self.gmUG2(n,d = d, edges = 6, scaleMat=scaleMat)
         elif self.testName == "randomGMLarge15":
             d = 16
             c = 0.15
             scaleMat = c*np.ones((d,d)) + (1-c)*np.eye(d)
-            return(self.gmUG2(n,d = d, edges = 10, scaleMat=scaleMat))
+            return self.gmUG2(n,d = d, edges = 10, scaleMat=scaleMat)
         else:
             print("Invalid test name.")
                     
@@ -80,7 +80,7 @@ class DataGenerator:
         
         G = 1*(G.T + G > 0)
         
-        return(X,G)
+        return X,G
         
     def genDataLargeUG(self,n,d, linear = True, noise = "gaussian"):
         assert d % 7 == 0
@@ -98,7 +98,7 @@ class DataGenerator:
         X = np.hstack(tuple(datas))    
         G = block_diag(*Gs)        
         
-        return(X,G)
+        return X,G
            
     def gmUG2(self,n, d, edges, scaleMat = None, df = None, nMIX = None, absPC = None):
         G = self.randUG(d,edges) # random UG
@@ -135,24 +135,24 @@ class DataGenerator:
 
             X[tt,:] = self.rng.multivariate_normal(np.zeros(d),cov)
                 
-        return(X,G)
+        return X,G
             
     # returns true if matrix is positive definite, false otherwise
     def __isPosDef(self,A):
         try: 
             np.linalg.cholesky(A) # this will raise LinAlgError if A is not pos def
-            return(True)
+            return True
         except np.linalg.LinAlgError:
-            return(False)
+            return False
         
     # returns noise from given (gaussian,uniform,t) distribution    
     def sampleNoise(self,n, noiseType = "gaussian"):
         if noiseType == "gaussian":
-            return(self.rng.normal(0, 1, (n,1)))
+            return self.rng.normal(0, 1, (n,1))
         if noiseType == "uniform":
-            return(self.rng.uniform(-1,1,(n,1)))
+            return self.rng.uniform(-1,1,(n,1))
         if noiseType == "t":
-            return(self.rng.standard_t(2,(n,1)))
+            return self.rng.standard_t(2,(n,1))
             
     # creates Gaussian data with a random underlying undirected graph        
     def randomGaussUG(self,n,d, prob = None):
@@ -160,7 +160,7 @@ class DataGenerator:
         seed = self.rng.randint(1,1e9)
         X,G = hugeGenerateData(n,d, graph = "random", prob = prob,seed = seed)
         
-        return(X,G)
+        return X,G
     
     # similar to above one, except the data is now transformed X -> X**3     
     def randomNonParaUG(self,n,d, prob = None):
@@ -168,7 +168,7 @@ class DataGenerator:
         seed = self.rng.randint(1,1e9)
         X,G = hugeGenerateData(n,d, graph = "random", prob = prob,seed = seed)
         X = X**3
-        return(X,G)
+        return X,G
         
         
     # create adjacency matrix of a random graph with "d" nodes and approximately "expectEdges" number of edges    
@@ -185,7 +185,7 @@ class DataGenerator:
                     G[ii,jj] = 1
                     G[jj,ii] = 1
         
-        return(G)
+        return G
         
     def sampleGWshrt(self,G,df,scaleMat, absPC = None):
    
@@ -195,7 +195,7 @@ class DataGenerator:
             repeat = True
             IC = np.array(bdGarph.rgwish(n = 1,adj_g = G,b = df, D = scaleMat))[:,:,0]
 
-            while(repeat):
+            while repeat:
                pc = self.covToCorr(IC)
                nonZerosOffDiagonals = np.abs(pc.ravel()[np.triu(G).ravel() > 0])
                minNonzero = np.min(nonZerosOffDiagonals)
@@ -203,8 +203,8 @@ class DataGenerator:
                if minNonzero > absPC:
                    break;
                 
-        return(IC)
+        return IC
               
     def covToCorr(self,cov):
         D = np.diag(np.reciprocal(np.sqrt(np.diag(cov))))
-        return(np.dot(np.dot(D,cov),D))
+        return np.dot(np.dot(D,cov),D)

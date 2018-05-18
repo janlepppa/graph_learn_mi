@@ -23,40 +23,65 @@ class StructLearn():
         self.MBresolve = MBresolve
         self.mode = mode
         
-        if(ci_estimator is None):           
+        if ci_estimator is None:           
             self.estimator = KnnEstimator()
         else:
             self.estimator = ci_estimator
             
-        if(MBalgorithm == "IAMB"):
+        if MBalgorithm == "IAMB":
             self.MBalgorithm = IAMB(self.X, estimator = self.estimator, mode= self.mode)
-        elif(MBalgorithm == "GS"):
+        elif MBalgorithm == "GS":
             self.MBalgorithm = GS(self.X, estimator = self.estimator)   
-        elif(MBalgorithm == "interIAMB"):
+        elif MBalgorithm == "interIAMB":
             self.MBalgorithm = interIAMB(self.X, estimator = self.estimator)
         else:
             print("Warning: MBalgorithm  \'",MBalgorithm,"\' is not defined. Using the IAMB-algorithm instead.", sep="")
             self.MBalgorithm = IAMB(self.X, self.estimator)
+            
+    def findMoralGraph(self):
+        print("Searching Markov Blankets...")
+        
+        # find the Markov blanket for each node
+        for ii in range(0,self.d):
+            
+            print("..........node ", ii + 1,"/",self.d,sep="")
+            MB = self.MBalgorithm.findMB(ii)
+            
+            self.MBs[ii] = MB              # store the found MBs
+            self.aMat[list(MB),ii] = 1         # store the found MB into adjacency matrix 
+        
+        # harmonize the found Markov blankets
+        self.aMat = self.__symmetrize(self.aMat, self.symmetryRule)
+        return self.aMat
+        
+        
+    # return undirected moral graph cinstructed from the Markov blanket information (AND or OR rule for harmonizing the blankets)    
+    def getMoralGraph(self,rule):
+        if bool(self.MBs) == False:
+            print("Markov blanket information not found. Call 'findMoralGraph'.")
+            return None
+        else:
+            return self.__symmetrize(self.MBs,rule)
                      
     def __symmetrize(self, G, rule):
-        if(isinstance(G,dict)): #input is dictionary containing Markov blankets
+        if isinstance(G,dict): #input is dictionary containing Markov blankets
             newG = np.zeros((self.d,self.d))
             
             for ii in range(0,self.d):
                 MB = G[ii]
                 newG[list(MB),ii] = 1
 
-            return(self.__symmetrize(newG,rule))        
+            return self.__symmetrize(newG,rule)        
         
-        elif(isinstance(G, np.ndarray)): # inpput is adjacency matrix
-            if(rule == "OR"):
+        elif isinstance(G, np.ndarray): # inpput is adjacency matrix
+            if rule == "OR":
                 OR = 1*((G + G.T) > 0)
                 OR = OR.astype(np.int)
-                return(OR)
-            if(rule == "AND"):
+                return OR
+            if rule == "AND":
                 AND = 1*((G + G.T) == 2)  
                 AND = AND.astype(np.int)
-                return(AND)
+                return AND
                 
         else:
             print("Oops")
@@ -71,7 +96,7 @@ class StructLearn():
                 if len(tris) > 0:
                     if (j, i) not in triangles:
                         triangles[(i, j)] = tris
-        return (triangles)
+        return triangles
 
     # returns nodes that reachable from nodes in set "A"  in G_XY (UG where all directed links involving x or y are removed)   
     def __reachableFrom(self,A,x,y):
@@ -91,7 +116,7 @@ class StructLearn():
         for W in A:
             reachable.update(set(nx.node_connected_component(G_XY,W)))    
 
-        return(reachable)
+        return reachable
         
         
     # main algorithm for directing v-structures after initial MB-search    
@@ -111,19 +136,17 @@ class StructLearn():
             BdX = self.__findBoundary(X)
             BdY = self.__findBoundary(Y)    
             
-            
-            
             A = BdX.difference(triXY.union([Y]))
             B = BdY.difference(triXY.union([X]))
             
-            if(len(A) < len(B)):
+            if len(A) < len(B):
                 B = A
                        
             for S in self.__allStrictSubsets(triXY):
                 S = set(S) # S is tuple
                 Z = B.union(S)
                 
-                if(self.MBalgorithm._doIndepTest(X,Y,list(Z))):
+                if self.MBalgorithm._doIndepTest(X,Y,list(Z)):
                      S_xy = Z
                      
                      break # collider set found, break inner for loop
@@ -137,7 +160,7 @@ class StructLearn():
                 for Sprime in self.__allStrictSubsets(D):
                     Z = Bprime.union(Sprime, S)
                     
-                    if(self.MBalgorithm._doIndepTest(X,Y,list(Z))):
+                    if self.MBalgorithm._doIndepTest(X,Y,list(Z)):
                      S_xy = Z
                      breakOuter = True
                      break # collider set found, break inner for loop
@@ -172,7 +195,7 @@ class StructLearn():
                 self.aMat[z,x] = 0 #orient x --> z 
                 self.aMat[z,y] = 0 #orient y --> z
             
-        return(self.aMat)       
+        return self.aMat       
             
     # returns an iterator over all the strict subsets (as tuples) of set A
     # if len(A) == 0 return list containing empty tuple                    
@@ -182,11 +205,11 @@ class StructLearn():
             return([()])
         else:    
             setIterator = (itertools.combinations(A,ssize) for ssize in range(0,maxSize) )
-            return(itertools.chain.from_iterable(setIterator))
+            return itertools.chain.from_iterable(setIterator)
      
     def __findBoundary(self, varIndex):
         connected = self.aMat[:,varIndex]
-        return(set(np.flatnonzero(connected)))       
+        return set(np.flatnonzero(connected))       
 
     
     def _resolveMarkovBlanketsGS(self):
@@ -204,7 +227,7 @@ class StructLearn():
                 Bx = set(np.nonzero(MBs[:,[x]])[0]).difference([y])
                 By = set(np.nonzero(MBs[:,[y]])[0]).difference([x])
                 
-                if(len(Bx) > len(By)):
+                if len(Bx) > len(By):
                     B = By
                 else:
                     B = Bx
@@ -217,15 +240,15 @@ class StructLearn():
                 setSize = 0
                 dependent = True
                 
-                while(dependent):
+                while dependent:
                     
-                    if(setSize > cardB):
+                    if setSize > cardB:
                         break;
                         
                     for S in self._subsets2(B,setSize):
                         indep = self.MBalgorithm._doIndepTest(x,y,list(S))
                         
-                        if(indep):
+                        if indep:
                             self.aMat[x,y] = 0
                             self.aMat[y,x] = 0
                             dependent = False
@@ -263,8 +286,8 @@ class StructLearn():
                     setSize = 0
                     
                     
-                    while(orient):
-                        if(setSize > cardB):
+                    while orient:
+                        if setSize > cardB:
                             break
                         
                         for S in self._subsets2(B,setSize):
@@ -275,53 +298,39 @@ class StructLearn():
                             
                             indep = self.MBalgorithm._doIndepTest(y,z,SuX)
                             
-                            if(indep == True):
+                            if indep == True:
                                 orient = False
                                 self.aMat[x,y] = 1  # tests yielded independence, remove orientation
                                 break
                             
                         setSize += 1
                         
-                    if(orient == True): # found z so that condition in phase 3 on page 35 of Margaritis thesis holds, exit the loop
+                    if orient == True: # found z so that condition in phase 3 on page 35 of Margaritis thesis holds, exit the loop
                         break
                              
     def _subsets2(self,A,setsize):
         # returns an iterator over all the subsets of "A" of size "setsize"
         # if "setsize == 0", returns a list containing empty set
-        if(setsize == 0):
-            return([set()])
+        if setsize == 0:
+            return [set()]
         else:
-            return(itertools.combinations(A,setsize))
+            return itertools.combinations(A,setsize)
    
-    def findMoralGraph(self):
-        print("Searching Markov Blankets...")
-        
-        # find the Markov blanket for each node
-        for ii in range(0,self.d):
-            
-            print("..........node ", ii + 1,"/",self.d,sep="")
-            MB = self.MBalgorithm.findMB(ii)
-            
-            self.MBs[ii] = MB              # store the found MBs
-            self.aMat[list(MB),ii] = 1         # store the found MB into adjacency matrix 
-        
-        # harmonize the found Markov blankets
-        self.aMat = self.__symmetrize(self.aMat, self.symmetryRule)
-        return(self.aMat)
+
                     
     def findDAG(self):
         # Run the structure learning algorithm using first the specified method for Markov blanket discovery.
         # The found Markov blankets are then resolved by orienting the V-structures 
         
-        if(not self.MBs):
+        if not self.MBs:
             print("Moral graph not found. Estimating it...")
             self.findMoralGraph()
         
-        if(self.MBresolve == "GS"):
+        if self.MBresolve == "GS":
             print("Using GS")
             self._resolveMarkovBlanketsGS()
             
-        elif(self.MBresolve == "colliders"):
+        elif self.MBresolve == "colliders":
             print("Using collider sets")
             self._resolveMBcoll()
         else:
@@ -329,17 +338,11 @@ class StructLearn():
             self._resolveMBcoll()
             
                
-        return(self.aMat)
+        return self.aMat
       
     # plot the current adjacency matric (UG or PDAG)    
     def showGraph(self):
-        return(drawGraph(self.aMat))
+        return drawGraph(self.aMat)
         
-    # return undirected moral graph cinstructed from the Markov blanket information (AND or OR rule for harmonizing the blankets)    
-    def getMoralGraph(self,rule):
-        if(bool(self.MBs) == False):
-            print("Markov blanket information not found. Call 'findMoralGraph'.")
-            return(None)
-        else:
-            return(self.__symmetrize(self.MBs,rule))
+
             

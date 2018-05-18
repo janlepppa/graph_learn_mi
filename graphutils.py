@@ -18,13 +18,13 @@ def getMaximalCliques(G):
             if i in c:
                 cliqInxByVar[i].append(c)
                     
-    return(cliqs,cliqInxByVar)
+    return cliqs,cliqInxByVar
     
     
 def drawGraph(G, nodeLabels = None):
     # Input: G              adjacency matrix (as numpy array)
     #        nodeLabels     list of strings specifying node names  
-    assert(G.shape[0] == G.shape[1])
+    assert G.shape[0] == G.shape[1]
     d = G.shape[0]
 
     graph = nx.DiGraph()
@@ -41,12 +41,12 @@ def drawGraph(G, nodeLabels = None):
             u = G[ii,jj]
             v = G[jj,ii]
 
-            if(u > 0 and v > 0 ):
+            if u > 0 and v > 0:
                 ud_edges.append((ii,jj))
                 ud_edges.append((jj,ii))
-            elif(u == 0 and v > 0):
+            elif u == 0 and v > 0:
                 di_edges.append((jj,ii))
-            elif(u > 0 and v == 0):
+            elif u > 0 and v == 0:
                 di_edges.append((ii,jj))
             else:
                 continue
@@ -70,7 +70,7 @@ def drawGraph(G, nodeLabels = None):
     nx.draw_networkx_edges(graph, pos, edgelist=ud_edges, edge_color='b', arrows=False)
     
     plt.show()
-    return(graph)
+    return graph
                   
 # Given a DAG 'G', return the Markov blanket of node 'varInx'          
 def findMB_DAG(G,varInx):
@@ -85,7 +85,7 @@ def findMB_DAG(G,varInx):
     MB.update(children)
     
     #spouses
-    if(len(children) > 0):
+    if len(children) > 0:
         for ii in children:
             parents_i = set(np.nonzero(G[:,ii])[0])
             MB.update(parents_i)
@@ -93,11 +93,11 @@ def findMB_DAG(G,varInx):
     # remove the variable itself from its Markov blanket
     MB.discard(varInx)
 
-    return(MB)
+    return MB
   
 # moralizes DAG or PDAG (where only V-structures are assmued to be directed)    
 def moralize(G):
-    assert(G.shape[0] == G.shape[1])
+    assert G.shape[0] == G.shape[1]
      
     # undirected version of the directed graph. bi-directed edges are intepreted as undirected ones
     newG = np.array(1*((G + G.T) > 0), dtype = np.int)
@@ -121,10 +121,10 @@ def moralize(G):
             
             # marry the parents 
             for parent in jjParents:
-                if(G[jj,parent] == 0): #check that parent has also _directed_ edge to jj
+                if G[jj,parent] == 0: #check that parent has also _directed_ edge to jj
                 
                    # check that parents are not already connected
-                   if(G[ii,parent] == 1 or G[parent,ii] == 1):
+                   if G[ii,parent] == 1 or G[parent,ii] == 1:
                        continue
                    else:
                        newG[ii,parent] = 1 
@@ -136,7 +136,7 @@ def moralize(G):
                 pDAG[jj,ii] = 1
                 
             
-    return(newG,pDAG,Vstructures)
+    return (newG,pDAG,Vstructures)
 
 # returns Hamming distance between two undirected graphs    
 def HD(trueUG,estUG):
@@ -145,7 +145,7 @@ def HD(trueUG,estUG):
     
     assert trueUG.dtype == np.int and estUG.dtype == np.int 
 
-    return(np.sum(1*(np.abs(trueUG-estUG) > 0))/2)
+    return np.sum(1*(np.abs(trueUG-estUG) > 0))/2
     
 # returns true positive and false positive rates
 def tp_fp(trueUG,estUG):
@@ -163,7 +163,7 @@ def tp_fp(trueUG,estUG):
     tps = np.sum((trueUG + estUG == 2)/2)
     fps = np.sum((trueUG - estUG == -1)/2)
 
-    return(tps/nedges,fps/non_edges)
+    return (tps/nedges,fps/non_edges)
 
 # simple class for representing V-structures    
 class Vstructure:
@@ -186,6 +186,6 @@ class Vstructure:
         
     def __str__(self):
         s = "" + str(self.parents[0]) + " --> " + str(self.child) + " <-- " + str(self.parents[1])
-        return(s)
+        return s
         
     

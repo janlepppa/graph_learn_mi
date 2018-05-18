@@ -62,7 +62,7 @@ class KnnEstimator:
         
         indep, estMI, varMI, prcn, MIs = self._permutationTest(x,y,z)
         
-        return(indep, estMI)
+        return indep, estMI
             
     def dependence(self,x,y,z = None):
         
@@ -72,21 +72,21 @@ class KnnEstimator:
         
         estMI = self._cmi1(x,y,z)
         
-        return(estMI)
+        return estMI
         
     def _cd2(self,d):
         hd = 0.5*d
-        return(np.exp((hd)*np.log(np.pi) - gammaln(1 + hd)))
+        return np.exp((hd)*np.log(np.pi) - gammaln(1 + hd))
         
     def _log_cd(self, d):
         hd = 0.5*d
-        return((hd)*np.log(np.pi) - gammaln(1 + hd) - d*np.log(2))
+        return (hd)*np.log(np.pi) - gammaln(1 + hd) - d*np.log(2)
         
     # Entropy estimator by Kraskov et al. The inåut data x should be Nxd numpy array (N obs ervations of d-dimensional variable)   
     def _entropy(self,x):
         N,d = x.shape 
         
-        if(np.isinf(self.p)):
+        if np.isinf(self.p):
             log_c_d = 0
         elif(self.p == 2):
             log_c_d = self._log_cd(d)
@@ -101,14 +101,14 @@ class KnnEstimator:
         # Kraskov Eq. (20)
         ent = psi(N) - psi(self.k) + log_c_d + d*avg_dist
     
-        return(ent)
+        return ent
 
     # Mutual information estimator by Kraskov et al. The inåut datas x and y should be Nxd1 and Nxd2 numpy arrays. (version 1, Eq (8))
     def _mi1(self,x,y):
-        assert(x.shape[0] == y.shape[0])
+        assert x.shape[0] == y.shape[0]
         
-        if(np.array_equal(x,y)):
-            return(self._entropy(x))
+        if np.array_equal(x,y):
+            return self._entropy(x)
         
         N,d1 = x.shape
         d2 = y.shape[1]
@@ -134,20 +134,20 @@ class KnnEstimator:
 
         mi = psi(self.k) + psi(N) - (np.mean(psi(n_x)) + np.mean(psi(n_y)))
         
-        if(self.p == 2):
+        if self.p == 2:
             norm_term = self._log_cd(d1) - self._log_cd(d2)
-            return(mi + norm_term)
+            return mi + norm_term
         
-        if(self.p == float("inf")):
-            return(mi)
+        if self.p == float("inf"):
+            return mi
      
-        return(mi)
+        return mi
         
     def _mi2(self,x,y):
-        assert(x.shape[0] == y.shape[0])
+        assert x.shape[0] == y.shape[0]
         
-        if(np.array_equal(x,y)):
-            return(self._entropy(x))
+        if np.array_equal(x,y):
+            return self._entropy(x)
         
         N,d1 = x.shape
         d2 = y.shape[1]
@@ -171,15 +171,15 @@ class KnnEstimator:
         # Eq. (8) in Kraskov et al.
         mi = psi(self.k) + psi(N) - (avg_log_n_x + avg_log_n_y) + np.log(self._cd2(d1)*self._cd2(d2) / (self._cd2(d1+d2)))
         
-        return(mi)
+        return mi
         
     
     # coditional mutual information estimator based on Kraskov estimator version 1.    
     def _cmi1(self,x,y,z = None):
-        if(z is None):
-            return(self._mi1(x,y))
+        if z is None:
+            return self._mi1(x,y)
         
-        assert(x.shape[0] == y.shape[0] & z.shape[0] == x.shape[0])
+        assert x.shape[0] == y.shape[0] and z.shape[0] == x.shape[0]
         
         N,d1 = x.shape
 
@@ -209,16 +209,17 @@ class KnnEstimator:
         # Eq. can be found in Vejmelka and Palus section II.B.1
         cmi = psi(self.k) - (np.mean(psi(n_xz)) + np.mean(psi(n_yz)) - np.mean(psi(n_z)))
 
-        return(cmi)
+        return cmi
         
     def _cmi2(self,x,y,z = None, viaMI = True):
-        if(z is None):
-            return(self._mi2(x,y))
+        if z is None:
+            return self._mi2(x,y)
             
         if viaMI:
-            return(self._mi2(x,np.hstack((y,z))) - self._mi2(x,z))
+            return self._mi2(x,np.hstack((y,z))) - self._mi2(x,z)
         
-        assert(x.shape[0] == y.shape[0] & z.shape[0] == x.shape[0])
+        assert x.shape[0] == y.shape[0] and z.shape[0] == x.shape[0]
+
         N,d1 = x.shape
         d2 = y.shape[1]
         d3 = z.shape[1]
@@ -251,32 +252,31 @@ class KnnEstimator:
         normTerm = np.log(self._cd2(d1 + d3)*self._cd2(d2 + d3)) - np.log(self._cd2(d1+d2+d3)*self._cd2(d3))                                                 
         
         cmi = psi(self.k) + normTerm - (avg_log_n_xz + avg_log_n_yz - avg_log_n_z)
-        return(cmi)
+        return cmi
         
     # pwermutation test for (conditional) independence  
     def _permutationTest(self,x,y,z = None):
         estMI = self._cmi1(x,y,z)
         
         # return just the estimated Mutual information if number of permutations = 1
-        if(self.permutations == 1):
+        if self.permutations == 1:
              
-             return(None, estMI, None, None, None)
+             return (None, estMI, None, None, None)
         
         # skip permutation tests if correlation is detected oOR if MI is low (under specified threshold) and correlation test implies independence   
-        if(self.corrCheck):
+        if self.corrCheck:
             corr, negPval = self.corrTest.independent(x,y,z) # result of a partial correlation based inpendence test (True = independence)
             
             if z is None: # If there are no conditioning variables and correlation is detected, infer dependence 
-                if(corr == False):
-                    return(False, estMI, None, None, None)     
+                if corr == False:
+                    return (False, estMI, None, None, None)     
                 
-            if(corr == False and estMI > self.UPPERthres): # linear dependence detected and estimated MI is over the threshold
-                return(False, estMI, None, None, None)              
+            if corr == False and estMI > self.UPPERthres: # linear dependence detected and estimated MI is over the threshold
+                return (False, estMI, None, None, None)              
             
-            if(estMI < self.LOWERthres and corr == True): # low MI and low partial correlation ---> independence
-                return(True, estMI, None, None, None)
-        
-                
+            if estMI < self.LOWERthres and corr == True: # low MI and low partial correlation ---> independence
+                return (True, estMI, None, None, None)
+               
         # permutation tests
         rr = np.random.randint(0,2**32-2-self.permutations) # THIS relies on global seed
         
@@ -291,7 +291,7 @@ class KnnEstimator:
             
              
         # run permuation tests serially or in parallel    
-        if(self.parallel == 1):            
+        if self.parallel == 1:            
             MIs = list(map(mi_func,args))                                                                
         else:  
             pool = mp.Pool(self.parallel)  
@@ -308,14 +308,14 @@ class KnnEstimator:
         indep = True # null-hypothesis
             
         # if observed p-value is less than significance level conlude dependence
-        if(estPVal < self.sig):
+        if estPVal < self.sig:
             indep = False
             
         # debugging    
-        if(len(np.unique(MIs)) != self.permutations):
+        if len(np.unique(MIs)) != self.permutations:
             print("some of the permuted MIs are exactly equal!!!")
         
-        return(indep, estMI, varMI, estPVal, MIs)
+        return (indep, estMI, varMI, estPVal, MIs)
         
     # one argument function to call permutation test
     def _permMI(self,args):
@@ -326,7 +326,7 @@ class KnnEstimator:
                   
         permuted_y = self.rng.permutation(y)    
   
-        return(self._cmi1(x,permuted_y, z))
+        return self._cmi1(x,permuted_y, z)
         
             
     def _permMI_local(self,args):
@@ -337,7 +337,7 @@ class KnnEstimator:
                   
         permuted_y = self._localPerm(y,nn_list)
         
-        return(self._cmi1(x,permuted_y, z))
+        return self._cmi1(x,permuted_y, z)
       
     # creates an iterator over arguments for the permutation tests            
     def _argIterator(self,x,y,z,startSeed):
@@ -354,7 +354,7 @@ class KnnEstimator:
 
         nn_list = treeZ.query(z, k = k, p = float('inf'))[1]
     
-        return(nn_list)
+        return nn_list
             
     def _localPerm(self,y,nn_list_z): 
         n = y.shape[0]
@@ -382,7 +382,7 @@ class KnnEstimator:
     
             used_indices.append(j)
             
-        return(permuted_y) 
+        return permuted_y 
 
         
     def __vec2array(self,x):
@@ -392,9 +392,9 @@ class KnnEstimator:
         if x is not None:
             if x.ndim == 1:
                 x = np.reshape(x,(len(x),1))                
-            return(x)
+            return x
         else:
-            return(None)
+            return None
         
             
 

@@ -60,13 +60,13 @@ def hugeLearnGraph(X, nonPara = True, method = "mb", nTunings = 20, modelSelectC
     # sparsity/ies for the estimated graph(s)
     sparsity = np.array(robjects.r['get']('sparsity',est))
     
-    return(estG,sparsity)
+    return (estG,sparsity)
     
 def transform(X, returnNumpyArray = True, verbose = False):
     if returnNumpyArray:
-        return(np.array(hugeR.huge_npn(X, verbose = verbose)))
+        return np.array(hugeR.huge_npn(X, verbose = verbose))
     else:
-        return(hugeR.huge_npn(X, verbose = verbose))
+        return hugeR.huge_npn(X, verbose = verbose)
     
     
 def hugeGenerateData(n,d, graph = "random", prob = None,seed = None):
@@ -87,7 +87,7 @@ def hugeGenerateData(n,d, graph = "random", prob = None,seed = None):
     
     asR = robjects.r['as']
     G = np.array(asR(G_R,"matrix"),dtype = np.int)
-    return(X,G)
+    return X,G
 
 
     

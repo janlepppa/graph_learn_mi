@@ -210,7 +210,7 @@ def doTests(testName,
     if SAVE:
         saveResults(res,filename)
     
-    return(res)
+    return res
     
     
 def compareKnns(testName,
@@ -326,7 +326,7 @@ def compareKnns(testName,
     if SAVE:
         saveResults(res,filename)
     
-    return(res)
+    return res
      
 def __method2str(comb):
     k,local,graph_rule = comb
@@ -346,7 +346,7 @@ def __method2str(comb):
 def __test2str(testname):
     if type(testname) == tuple: # convert test name to string
  
-        if(testname[0] == True):
+        if testname[0] == True:
             linearity = "Linear"
         else:
             linearity = "Nonlinear"
@@ -357,14 +357,8 @@ def __test2str(testname):
     else:
         raise TypeError("unkown test")
         
-    return(test_str)
+    return test_str
         
 def saveResults(res,pathToSave):       
-        pickle.dump(res,open(pathToSave,"wb")) 
+    pickle.dump(res,open(pathToSave,"wb")) 
         
-    
-
-
-	       
-    
-    

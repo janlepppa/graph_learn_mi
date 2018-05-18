@@ -53,7 +53,7 @@ def compErrors2(x,y,samples, ks, trueMI,p,z=None):
         for k in ks:
             aa = KnnEstimator(k = k, p = p)
             
-            if(z is not None):
+            if z is not None:
                 res1[ki,ni] = trueMI -aa._cmi1(x[:n,:],y[:n,:],z[:n,:]) 
                 
             else:
@@ -62,7 +62,7 @@ def compErrors2(x,y,samples, ks, trueMI,p,z=None):
             ki += + 1
         ni += 1
         
-    return(res1)
+    return res1
     
 # test entropy estimators, plot absolute error as a function of sample size  
 def testEntropy(seed, p = float('inf')):
@@ -153,7 +153,7 @@ def testMI2(seed, k =3, c = 0.1, ntests = 10, p = float('inf')):
     plt.legend(loc='best')  
     plt.show()
     
-    return(errors)    
+    return errors    
     
 def testCMI(seed, tests = 3, p = float('inf')):
     
@@ -283,25 +283,25 @@ def testCMI2(seed,k = 3, tests = 10):
  
 # entropy for Gaussian variables, input: (scalar) variance or covariance matrix    
 def mvnEntropy(cov_mat):
-    if(np.isscalar(cov_mat)):
+    if np.isscalar(cov_mat):
         return(0.5*(np.log(2*np.pi*np.e) +  np.log(cov_mat)))
     else:
         return(0.5*(cov_mat.shape[0]*np.log(2*np.pi*np.e) + np.linalg.slogdet(cov_mat)[1]))
 
 def extSubmat(mat,variables):
-    return(mat[variables,:][:,variables])
+    return mat[variables,:][:,variables]
     
 # MUTUAL INFORMATION for Gaussian variables, cov_mat should be a numpy array.
 #If z argument is not given, compute mutual information: I(x,y) = H(x) + H(y)- H(x,y)
 #I(x,y | z) = H(x,z) + H(y,z) - H(x,y,z) - H(z) , x,y,z are lists containing indices of variables referring to cov_mat   
 def mvnCMI(cov_mat,x,y,z = None):
-    if(z is None):
-            xy = x + y
-            Hxy = mvnEntropy(extSubmat(cov_mat,xy))
-            Hy = mvnEntropy(extSubmat(cov_mat,y))
-            Hx = mvnEntropy(extSubmat(cov_mat,x))
+    if z is None:
+        xy = x + y
+        Hxy = mvnEntropy(extSubmat(cov_mat,xy))
+        Hy = mvnEntropy(extSubmat(cov_mat,y))
+        Hx = mvnEntropy(extSubmat(cov_mat,x))
     
-            return(Hx+Hy-Hxy)           
+        return Hx+Hy-Hxy           
     else:     
         xz = x + z
         yz = y + z
@@ -312,7 +312,7 @@ def mvnCMI(cov_mat,x,y,z = None):
         Hxyz = mvnEntropy(extSubmat(cov_mat,xyz))
         Hz = mvnEntropy(extSubmat(cov_mat,z))
     
-        return(Hxz + Hyz - Hxyz - Hz)
+        return Hxz + Hyz - Hxyz - Hz
     
         
 def mvnormal_cmi_null(samples = 100, t = 10000,k = 3, sig = 0.05,permutations = 200,k_perm = None):
@@ -380,7 +380,7 @@ def mvnormal_cmi_null(samples = 100, t = 10000,k = 3, sig = 0.05,permutations = 
     plt.legend()
     
     
-    return(cmi_dep,cmi_indep,true_cmi_dep)
+    return (cmi_dep,cmi_indep,true_cmi_dep)
    
 def createMeanderData(n):
     Z = (3/4)*np.random.normal(loc = 0, scale = 1/5, size= (n,1) ) + (1/4)*np.random.normal(loc = 1, scale = 1/3, size= (n,1))
@@ -389,17 +389,14 @@ def createMeanderData(n):
     
     #fig = plt.figure()
   
-    return(X,Y,Z)
+    return (X,Y,Z)
     
 def creteMeanderDataVstructure(n):
     X =  (3/4)*np.random.normal(loc = 0, scale = 1/5, size= (n,1) ) + (1/4)*np.random.normal(loc = 1, scale = 1/3, size= (n,1))
     Y =  (3/4)*np.random.normal(loc = 0, scale = 1/5, size= (n,1) ) + (1/4)*np.random.normal(loc = 1, scale = 1/3, size= (n,1))
     Z =  X/10 + 0.5*np.sin(2*np.pi*X) + Y/5 + 0.5*np.sin(2*np.pi*Y) + 0.1*np.random.normal(loc = 0, scale = 1, size= (n,1))
     
-    return(X,Y,Z)
-    
-    
-
+    return (X,Y,Z)
     
 def visualizeMeanderCI(samples, k = 5, permutations = 200, seed = 123, sig = 0.05, k_perm = 5,corrCheck = False, data = 1):
     
@@ -426,10 +423,9 @@ def visualizeMeanderCI(samples, k = 5, permutations = 200, seed = 123, sig = 0.0
     ax.legend()
     print("knn naive permutation: ", indep, "\n","knn local permutation: ",indep_l)
     
-    return(indep,indep_l,estMI,estMI_l,ax,MIs,MIs_l)
+    return (indep,indep_l,estMI,estMI_l,ax,MIs,MIs_l)
     
-    
-    
+
 def testMeander(samples, k = 5, permutations = 200, seed = 123, tests = 100, sig = 0.05, k_perm = None,corrCheck = False):
     np.random.seed(seed)
     

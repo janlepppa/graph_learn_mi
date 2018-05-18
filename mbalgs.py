@@ -25,35 +25,38 @@ class MBAlgorithms:
         yi = self.X[:,[y]]
         x = self.X[:,[var_inx]]
     
-        if(len(MB) == 0):
+        if len(MB) == 0:
             z = None
         else:
             z = self.X[:,list(MB)]       #conditioning set
                  
         inCache, key = self._isCached(var_inx, y, MB)
         
-        if(inCache):
+        if inCache:
             estMI = self.cache[key][1]
         else:
-            estMI = self.estimator.dependence(x,yi,z)     
+            estMI = self.estimator.dependence(x,yi,z)
+            
         return estMI
         
             
     def _doIndepTest(self, var_inx ,y ,MB):
-        if(MB is None):
+        
+        if MB is None:
             z = None
-        elif(len(MB) == 0):
+        elif len(MB) == 0:
             z = None
         else:
             z = self.X[:,list(MB)]       #conditioning set
             
-        assert(np.isscalar(var_inx) & np.isscalar(y))
+        assert np.isscalar(var_inx) and np.isscalar(y)
 
         yi = self.X[:,[y]]
         x = self.X[:,[var_inx]]
     
         inCache, key = self._isCached(var_inx, y, MB)
-        if(inCache):
+        
+        if inCache:
             indep = self.cache[key][0]
         else:
             indep, estMI = self.estimator.independent(x,yi,z)
@@ -70,9 +73,9 @@ class MBAlgorithms:
             
             if(key in self.cache):
                 #print("cache used", x, y ,z)
-                return(True, key)
+                return (True, key)
             else:
-                return(False,key)
+                return (False,key)
                 
     # key is tuple containing tuples (x,y) (sorted) and (z) (sorted)            
     def _returnKey(self, x, y, z):
@@ -83,7 +86,7 @@ class MBAlgorithms:
         zz = list(z)
         zz.sort()
         
-        return((tuple(xy),tuple(zz)))
+        return (tuple(xy),tuple(zz))
         
     def _putInCache(self, key, value):
         self.cache[key] = value     
@@ -109,7 +112,7 @@ class GS(MBAlgorithms):
         # grow phase
         grow = True
         
-        while(grow):
+        while grow:
     
             grow = False
                   
@@ -117,24 +120,24 @@ class GS(MBAlgorithms):
             
                 indep = self._doIndepTest(var_inx, y, MB)
                     
-                if(indep == False):         # x (conditionally) dependent on y
+                if indep == False:         # x (conditionally) dependent on y
                     MB.add(y)               # add y to blankets
                     newCands.remove(y)      # remove from candidate set
                     grow = True             # Markov blanket changed, try to add more (if there are candidates left)
             
                     
             cands = set(newCands)        
-            if(len(cands) == 0):
+            if len(cands) == 0:
                 grow = False
                 
                            
         # shrink phase
-        if(len(MB) <= 1):
+        if len(MB) <= 1:
             shrink = False                  # no need to shrink if MB size is 0 or 1 (with 1 we would be repeating one test)
         else:
             shrink = True
             
-        while(shrink):
+        while shrink:
             
             #print(MB)
             shrink = False
@@ -145,16 +148,14 @@ class GS(MBAlgorithms):
                 
                 indep = self._doIndepTest(var_inx, y, newMB)
                 
-                if(indep == False):
+                if indep == False:
                     newMB.add(y)        # conditional independence does not hold, put variable back 
                     
                 
-            if(MB != newMB):            # blanket changed, update MB and continue shrinking
+            if MB != newMB:            # blanket changed, update MB and continue shrinking
                 shrink = True
                 MB = set(newMB)
             
-               
-            #print(MB)
         return(MB)
  
  # Incremental Association Markov Blanket algorithm       
@@ -176,7 +177,7 @@ class IAMB(MBAlgorithms):
         # add variables to the blanket
         addVariables = True
         
-        while(addVariables):
+        while addVariables:
             
             addVariables = False
             
@@ -195,47 +196,44 @@ class IAMB(MBAlgorithms):
             # check (conditional independence)
             indep = self._doIndepTest(var_inx, highestMIindex , MB)
             
-            if(indep == False):
+            if indep == False:
                 
                 MB.add(highestMIindex)        
                 cands.remove(highestMIindex)
                 
-                if(len(cands) > 0):
+                if len(cands) > 0:
                     addVariables = True # MB changed, continue adding
             else:
-                if(self.mode == "UG"): # Faithfulness to Markov network assumed
+                if self.mode == "UG": # Faithfulness to Markov network assumed
                     cands.remove(highestMIindex) # we can remove the independent variable from the subsequent tests
                     
-                    if(len(cands) > 0):
+                    if len(cands) > 0:
                         addVariables = True # MB changed, continue adding
         
         ########### removal phase
-        if(len(MB) <= 1):
+        if len(MB) <= 1:
             removeVariables = False
         else:
-             removeVariables = True
+            removeVariables = True
              
-        while(removeVariables):
+        while removeVariables:
             
             newMB = set(MB)
             removeVariables = False
             
             for y in MB:
                 newMB.remove(y)
-                
-                
+                    
                 indep = self._doIndepTest(var_inx, y, newMB)
                
-                if(indep == False):
+                if indep == False:
                     newMB.add(y)        # conditional independence does not hold, put variable back 
-                    
-                
-            if(MB != newMB):            # blanket changed, update MB and continue shrinking
+                                    
+            if MB != newMB:            # blanket changed, update MB and continue shrinking
                 removeVariables = True
                 MB = set(newMB)
-                
-                
-        return(MB)
+                                
+        return MB
         
 # interleaved IAMB, each succesfull addition step is follow by a deletion step            
 class interIAMB(MBAlgorithms):
@@ -258,7 +256,7 @@ class interIAMB(MBAlgorithms):
             addVariables = True
             
             #print("Adding variables: ")
-            while(addVariables):
+            while addVariables:
                 
                 addVariables = False
                 
@@ -271,7 +269,7 @@ class interIAMB(MBAlgorithms):
                     
                     #print("var", y, ",   MI = ", miXY)
                     
-                    if(miXY > highestMI):
+                    if miXY > highestMI:
                         highestMIindex = y
                         highestMI = miXY
                         
@@ -279,17 +277,17 @@ class interIAMB(MBAlgorithms):
                 # check (conditional independence)
                 indep = self._doIndepTest(var_inx, highestMIindex , MB)
                 
-                if(indep == False):        
+                if indep == False:        
                     MB.add(highestMIindex)        
                     cands.remove(highestMIindex)
                  
                     # possible removal phase
-                    if(len(MB) <= 1):
+                    if len(MB) <= 1:
                         removeVariables = False
                     else:
                         removeVariables = True
                  
-                    while(removeVariables):
+                    while removeVariables:
                 
                         newMB = set(MB)
                         removeVariables = False
@@ -299,23 +297,23 @@ class interIAMB(MBAlgorithms):
                     
                             indep = self._doIndepTest(var_inx, y, newMB)
                     
-                            if(indep == False):
+                            if indep == False:
                                 newMB.add(y)        # conditional independence does not hold, put variable back 
                         
                     
-                        if(MB != newMB):            # blanket changed, update MB and continue shrinking
+                        if MB != newMB:            # blanket changed, update MB and continue shrinking
                             removeVariables = True
                             MB = set(newMB)
                     
                     
-                    if(len(cands) > 0):
+                    if len(cands) > 0:
                         addVariables = True # MB changed, continue adding
                         
                 else:
-                    if(self.mode == "UG"): # Faithfulness to Markov network assumed
+                    if self.mode == "UG": # Faithfulness to Markov network assumed
                         cands.remove(highestMIindex) # we can remove the independent variable from the subsequent tests
                     
-                        if(len(cands) > 0):
+                        if len(cands) > 0:
                             addVariables = True # MB changed, continue adding  
          
-            return(MB)
+            return MB

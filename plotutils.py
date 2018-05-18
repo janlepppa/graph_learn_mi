@@ -43,7 +43,7 @@ knn_comp_methods_legend = ['k_0.01n_local',
                     'k_5']
 
 def loadRes(location):
-    return(pickle.load(open(location,"rb")))
+    return pickle.load(open(location,"rb"))
     
 # check that tuning parameter ranges are sensible in all tests (smallest one yields a graph that is denser than the generating model and
 # the largest is known to yield an empty graph)    
@@ -67,7 +67,7 @@ def checkAllSparsities(folderName, testNames = None, methods = None):
 def checkSparsities(testName,folderName, methods = None):
     if type(testName) == tuple: # convert test name to string
      
-            if(testName[0] == True):
+            if testName[0] == True:
                 testNameString = "Linear"
             else:
                 testNameString = "Nonlinear"
@@ -126,7 +126,7 @@ def gen_smallnetwork_subplot(fontscale = 2,
         ylab = None
         xlab = None
         
-        if (ax_ii == 0) or (ax_ii == 3):
+        if ax_ii == 0 or ax_ii == 3:
             ylab = "Hamming distance"
             
         if ax_ii >= 3:
@@ -230,7 +230,7 @@ def gen_knn_comparison_subplot(fontscale = 2,
         ylab = None
         xlab = None
         
-        if (ax_ii == 0) or (ax_ii == 3):
+        if ax_ii == 0 or ax_ii == 3:
             ylab = "Hamming distance"
             
         if ax_ii >= 3:
@@ -278,7 +278,7 @@ def load_and_plot_res(testName, title, ax,
     # load the right file
     if type(testName) == tuple: # convert test name to string
      
-            if(testName[0] == True):
+            if testName[0] == True:
                 testNameString = "Linear"
             else:
                 testNameString = "Nonlinear"
@@ -372,7 +372,7 @@ def plotOnlyLegend(folderName = "k5",
     # load the right file
     if type(testName) == tuple: # convert test name to string
      
-            if(testName[0] == True):
+            if testName[0] == True:
                 testNameString = "Linear"
             else:
                 testNameString = "Nonlinear"
@@ -486,186 +486,4 @@ def knn_tp_fp(folder = "tests/knn_est_test", methods = None, printt = False):
             print(tp_df)
             print(fp_df)
         
-    return(res_dict)
-        
-#def plotLargeNetworks(font = 1.5, folder = None, methods = None, leg = False):
-#    
-#    if methods is None:
-#       methods = ["knnMI_AND","fisherZ_AND","mb_STARS","glasso_STARS","mb_auto"]
-#    
-#    tests = ["largeUG","largeUG_u","largeUG_g","randomUG", "randomUGnonPara","randomUGLarge", "randomUGnonParaLarge"]
-#             
-#    titles = ["Large network + t","Random Gaussian", "Random Non-paranormal","Random Gaussian Large", "Random Non-paranormal Large"]
-#   
-#    for (test, title) in zip(tests,titles):
-#        #if ii == nTests:
-#        #    leg = True
-#        try:
-#            plotRes(testName = test, folderName= folder, methods= methods, font= font, title = title, leg = leg)
-#        #ii += 1
-#        except FileNotFoundError:
-#            print("File corresponding to test",test, "does not exist")
-#    
-#def plotSmallNetworks(font = 1.5, folder = None, methods = None, leg = False):
-#    
-#    if methods is None:
-#       methods = ["knnMI_AND","fisherZ_AND","mb_STARS","glasso_STARS","mb_auto","RCIT_AND","KCIT_AND"]
-#    
-#    linear = [True,False]
-#    noises = ["Gaussian", "t", "Uniform"]
-#
-#    tests = list(product(linear, noises))
-#
-#    for test in tests:
-#               
-#        if test[0] == True:
-#            title = "Linear + "
-#        else:
-#            title = "Non-linear + "
-#        
-#        title = title + test[1]
-#        
-#        plotRes(testName = (test[0],test[1].lower()), folderName= folder, methods= methods, font= font, title = title, leg = leg)
-#def plot_knn_comparisons(font = 15, folder = "knn_est_test", methods = None, leg = False):
-#    
-#    if methods is None:
-#        methods = []
-#        pars = loadRes("tests/" + folder + "/Lineargaussian.p")
-#        all_methods = pars[1]["methods"]
-#
-#        for m in all_methods:
-#            if m[-1] == "D":
-#                methods.append(m)
-#                
-#                
-#    linear = [True,False]
-#    noises = ["Gaussian", "t", "Uniform"]
-#
-#    tests = list(product(linear, noises))
-#   
-#    for test in tests:
-#        
-#        if test[0] == True:
-#            title = "Linear + "
-#        else:
-#            title = "Non-linear + "
-#        
-#        title = title + test[1]
-#        
-#        plotRes(testName = (test[0],test[1].lower()), folderName= folder, methods= methods, font= font, title = title, leg = leg)
-# 
-#        
-#    plotRes(testName = "largeUG", folderName= folder, methods= methods, font= font, title = "Large UG + t", leg = leg)
-#    
-#    
-#def plotRes(testName, folderName = None, font = 1, methods = None, leg= False, title = None):
-#    # load the right file
-#    if type(testName) == tuple: # convert test name to string
-#     
-#            if(testName[0] == True):
-#                testNameString = "Linear"
-#            else:
-#                testNameString = "Nonlinear"
-#    
-#            testName = testNameString + testName[1]
-#
-#    if folderName is None:
-#        filee = "tests/" + testName + ".p"
-#    else:
-#        filee = "tests/" + folderName + "/" +testName + ".p"
-#        
-#    res,parameters = loadRes(filee)
-#    
-#    ns = parameters["ns"]
-#
-#    
-#    print("k = ", parameters.get('k'))
-#
-#    if methods is None:
-#       methods = ["knnMI_AND","fisherZ_AND","mb_STARS","glasso_STARS","mb_auto"]
-#
-#    if "KCIT_AND" or "RCIT_AND" in methods: # add results for the kernel mehthods from different folder
-#        kernel_res,kernel_par = loadRes("tests/kernel_tests/" + testName + ".p")
-#        print("ntests (kernel) = ",len(kernel_res['RCIT_AND'][2000]['HD']))
-#        res.update(kernel_res)
-#
-#    HDs = np.zeros((len(methods),len(ns)))
-#    SDs = np.zeros((len(methods),len(ns)))
-#
-#    ii = 0
-#    
-#    for method in methods:
-#        
-#        jj = 0
-#        
-#        for n in ns:
-#            hds = res[method][n]["HD"]
-#            
-#            HDs[ii,jj] = np.mean(hds)
-#            SDs[ii,jj] = np.std(hds)/np.sqrt(len(hds)) # standard error of the mean
-#           
-#            jj += 1            
-#        
-#        ii += 1
-#    
-#    print("ntests = " ,len(hds))    
-#    ############## plot    
-#    x = range(0,len(ns)) 
-#    
-#    #plt.rcParams.update({'font.size': font})
-#    linestyles = ['-', '--', ':']
-#
-#    linestyles = (int(len(methods)/len(linestyles)) +1 )*linestyles
-#    
-#    sns.set_style('ticks')
-#    #sns.set_palette('colorblind')
-#    sns.set_palette("Set1", 10)
-#        
-#    
-#    sns.set_context("paper", font_scale=font)
-#    
-#    
-#    fig = plt.figure()
-#    ax = plt.subplot(111)
-#    ax.set_ylim(-0.1, np.ceil(np.amax(HDs) + np.mean(SDs.flatten())))
-#    epsss = 0.05
-#    ax.set_xlim(x[0]-epsss, x[len(x)-1]+ epsss)
-#    for i in range(0,len(methods)):
-#        lab = methods[i]
-#        ax.errorbar(x,HDs[i,:],SDs[i,:],ls = linestyles[i] ,label = lab, marker = 'o', linewidth = 4)
-#   
-#    ax.set_xticks(range(0,len(ns)))    
-#    ax.set_xticklabels(ns)    
-#    ax.set_ylabel("Hamming distance")
-#    ax.set_xlabel("Sample size")    
-#    ax.grid()      
-#
-#    if title is not None:      
-#        ax.set_title(title)
-#               
-#    if leg is True:    
-#        # Shrink current axis by 20%
-#        box = ax.get_position()
-#        ax.set_position([box.x0, box.y0, box.width * 0.75, box.height])
-#    
-#        # Put a legend to the right of the current axis
-#        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),prop={'size':12})
-#        
-#
-#    folder = "tests/" + folderName + "/figures"
-#    
-#    if not os.path.exists(folder):
-#            os.makedirs(folder)
-#          
-#    filename = folder + "/" + testName + ".pdf"
-#    
-#    #plt.tight_layout()
-#    
-#    fig.savefig(filename)
-#    plt.show()    
-#    
-#def plotAll(folderName,leg = False, methods = used_methods,fontscale = 1.5):
-#    plotLargeNetworks(folder= folderName, leg=leg,methods=methods,font=fontscale) 
-#    plotSmallNetworks(folder = folderName,leg=leg,methods=methods,font = fontscale)
-
-    
+    return res_dict
